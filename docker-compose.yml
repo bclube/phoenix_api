@@ -18,3 +18,11 @@ db:
     - POSTGRES_USER=postgres
     - POSTGRES_PASSWORD=postgres
     - POSTGRES_HOST=db
+  volumes:
+    # Direct volume mounts in Windows don't work with postgresql. Results in
+    # following error:
+    #   ** FATAL:  data directory "/var/lib/postgresql/data" has wrong ownership
+    # Create persistent volume using Docker like this:
+    # $> docker volume create --name rumbl-postgres-volume -d local
+    # ...then use that volume here:
+    - "rumbl-postgres-volume:/var/lib/postgresql/data"
