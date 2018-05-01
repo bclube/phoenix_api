@@ -19,6 +19,8 @@ config :rumbl, Rumbl.Endpoint,
 
 # Configures Elixir's Logger
 config :logger, :console,
+  handle_otp_reports: true,
+  handle_sasl_reports: true,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
