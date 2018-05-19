@@ -1,16 +1,38 @@
 defmodule Rumbl.VideoController do
   use Rumbl.Web, :controller
 
-  alias Rumbl.Video
+  alias Rumbl.{
+    Category,
+    User,
+    Video,
+  }
 
   plug :scrub_params, "video" when action in [:create, :update]
+  plug :load_categories when action in [:new, :create, :edit, :update]
 
   def action(conn, _), do: apply(__MODULE__, action_name(conn), [conn, conn.params, conn.assigns.current_user])
 
   defp user_videos(user), do: assoc(user, :videos)
 
+  defp with_category_names(videos), do: preload(videos, :category)
+
+  defp load_categories(conn, _) do
+    categories =
+      Category
+      |> Category.alphabetical()
+      |> Category.names_and_ids()
+      |> Repo.all()
+
+    assign(conn, :categories, categories)
+  end
+
   def index(conn, _params, user) do
-    videos = Repo.all(user_videos(user))
+    videos =
+      user
+      |> user_videos()
+      |> with_category_names()
+      |> Repo.all()
+
     render(conn, "index.html", videos: videos)
   end
 
@@ -40,18 +62,23 @@ defmodule Rumbl.VideoController do
   end
 
   def show(conn, %{"id" => id}, user) do
-    video = user |> user_videos() |> Repo.get!(id)
+    video =
+      user
+      |> user_videos()
+      |> with_category_names()
+      |> Repo.get!(id)
+
     render(conn, "show.html", video: video)
   end
 
   def edit(conn, %{"id" => id}, user) do
-    video = user |> user_videos() |> Repo.get!(id)
+    video = Repo.get!(user_videos(user), id)
     changeset = Video.changeset(video)
     render(conn, "edit.html", video: video, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "video" => video_params}, user) do
-    video = user |> user_videos() |> Repo.get!(id)
+    video = Repo.get!(user_videos(user), id)
     changeset = Video.changeset(video, video_params)
 
     case Repo.update(changeset) do
