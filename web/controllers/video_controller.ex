@@ -3,7 +3,6 @@ defmodule Rumbl.VideoController do
 
   alias Rumbl.{
     Category,
-    User,
     Video,
   }
 
