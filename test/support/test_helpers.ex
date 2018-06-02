@@ -6,7 +6,7 @@ defmodule Rumbl.TestHelpers do
       Enum.into(attrs, %{
         name: "Some User",
         username: "user#{Base.encode16(:crypto.strong_rand_bytes(8))}",
-        password: "supersecret",
+        password: "supersecret"
       })
 
     %Rumbl.User{}

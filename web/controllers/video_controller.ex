@@ -3,13 +3,14 @@ defmodule Rumbl.VideoController do
 
   alias Rumbl.{
     Category,
-    Video,
+    Video
   }
 
-  plug :scrub_params, "video" when action in [:create, :update]
-  plug :load_categories when action in [:new, :create, :edit, :update]
+  plug(:scrub_params, "video" when action in [:create, :update])
+  plug(:load_categories when action in [:new, :create, :edit, :update])
 
-  def action(conn, _), do: apply(__MODULE__, action_name(conn), [conn, conn.params, conn.assigns.current_user])
+  def action(conn, _),
+    do: apply(__MODULE__, action_name(conn), [conn, conn.params, conn.assigns.current_user])
 
   defp user_videos(user), do: assoc(user, :videos)
 
@@ -55,6 +56,7 @@ defmodule Rumbl.VideoController do
         conn
         |> put_flash(:info, "Video created successfully.")
         |> redirect(to: video_path(conn, :index))
+
       {:error, changeset} ->
         render(conn, "new.html", changeset: changeset)
     end
@@ -85,6 +87,7 @@ defmodule Rumbl.VideoController do
         conn
         |> put_flash(:info, "Video updated successfully.")
         |> redirect(to: video_path(conn, :show, video))
+
       {:error, changeset} ->
         render(conn, "edit.html", video: video, changeset: changeset)
     end

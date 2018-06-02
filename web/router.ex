@@ -2,31 +2,32 @@ defmodule Rumbl.Router do
   use Rumbl.Web, :router
 
   pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_flash
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
-    plug Rumbl.Auth, repo: Rumbl.Repo
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_flash)
+    plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
+    plug(Rumbl.Auth, repo: Rumbl.Repo)
   end
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug(:accepts, ["json"])
   end
 
   scope "/", Rumbl do
-    pipe_through :browser # Use the default browser stack
+    # Use the default browser stack
+    pipe_through(:browser)
 
-    get "/", PageController, :index
-    resources "/sessions", SessionController, only: [:new, :create, :delete]
-    resources "/users", UserController, only: [:index, :show, :new, :create]
-    get "/watch/:id", WatchController, :show
+    get("/", PageController, :index)
+    resources("/sessions", SessionController, only: [:new, :create, :delete])
+    resources("/users", UserController, only: [:index, :show, :new, :create])
+    get("/watch/:id", WatchController, :show)
   end
 
   scope "/manage", Rumbl do
-    pipe_through [:browser, :authenticate_user]
+    pipe_through([:browser, :authenticate_user])
 
-    resources "/videos", VideoController
+    resources("/videos", VideoController)
   end
 
   # Other scopes may use custom stacks.
