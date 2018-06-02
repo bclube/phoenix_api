@@ -1,7 +1,3 @@
-// for phoenix_html support, including form and button helpers
-// copy the following scripts into your javascript bundle:
-// * https://raw.githubusercontent.com/phoenixframework/phoenix_html/v2.3.0/priv/static/phoenix_html.js
-
 let Player = {
   player: null,
 
@@ -30,11 +26,4 @@ let Player = {
   getCurrentTime(){ return Math.floor(this.player.getCurrentTime() * 1000) },
   seekTo(millsec){ return this.player.seekTo(millsec / 1000) }
 }
-
-let video = document.getElementById("video")
-
-if(video) {
-  Player.init(video.id, video.getAttribute("data-player-id"), () => {
-    console.log("player ready!")
-  })
-}
+export default Player
