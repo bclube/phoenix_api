@@ -1,8 +1,4 @@
-import Player from "./player"
-let video = document.getElementById("video")
+import socket from "./socket"
+import Video from "./video"
 
-if(video) {
-  Player.init(video.id, video.getAttribute("data-player_id"), () => {
-    console.log("player ready!")
-  })
-}
+Video.init(socket, document.getElementById("video"))
