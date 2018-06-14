@@ -1591,6 +1591,8 @@ var _player2 = _interopRequireDefault(_player);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var Video = {
   init: function init(socket, element) {
     var _this = this;
@@ -1600,6 +1602,7 @@ var Video = {
     }
     var playerId = element.getAttribute("data-player-id");
     var videoId = element.getAttribute("data-id");
+
     socket.connect();
     _player2.default.init(element.id, playerId, function () {
       _this.onReady(videoId, socket);
@@ -1621,12 +1624,28 @@ var Video = {
       msgInput.value = "";
     });
 
+    msgContainer.addEventListener("click", function (e) {
+      e.preventDefault();
+      var seconds = e.target.getAttribute("data-seek") || e.target.parentNode.getAttribute("data-seek");
+      if (!seconds) {
+        return;
+      }
+      _player2.default.seekTo(seconds);
+    });
+
     vidChannel.on("new_annotation", function (resp) {
+      vidChannel.params.last_seen_id = resp.id;
       _this2.renderAnnotation(msgContainer, resp);
     });
 
     vidChannel.join().receive("ok", function (resp) {
-      return console.log("joined the video channel", resp);
+      var ids = resp.annotations.map(function (ann) {
+        return ann.id;
+      });
+      if (ids.length > 0) {
+        vidChannel.params.last_seen_id = Math.max.apply(Math, _toConsumableArray(ids));
+      }
+      _this2.scheduleMessages(msgContainer, resp.annotations);
     }).receive("error", function (reason) {
       return console.log("join failed", reason);
     });
@@ -1642,9 +1661,35 @@ var Video = {
         at = _ref.at;
 
     var template = document.createElement("div");
-    template.innerHTML = "\n    <a href=\"#\" data-seek=\"" + this.esc(at) + "\">\n      <b>" + this.esc(user.username) + "</b>: " + this.esc(body) + "\n    </a>\n    ";
+    template.innerHTML = "\n    <a href=\"#\" data-seek=\"" + this.esc(at) + "\">\n      [" + this.formatTime(at) + "]\n      <b>" + this.esc(user.username) + "</b>: " + this.esc(body) + "\n    </a>\n    ";
     msgContainer.appendChild(template);
     msgContainer.scrollTop = msgContainer.scrollHeight;
+  },
+  scheduleMessages: function scheduleMessages(msgContainer, annotations) {
+    var _this3 = this;
+
+    setTimeout(function () {
+      var ctime = _player2.default.getCurrentTime();
+      var remaining = _this3.renderAtTime(annotations, ctime, msgContainer);
+      _this3.scheduleMessages(msgContainer, remaining);
+    }, 1000);
+  },
+  renderAtTime: function renderAtTime(annotations, seconds, msgContainer) {
+    var _this4 = this;
+
+    return annotations.filter(function (ann) {
+      if (ann.at > seconds) {
+        return true;
+      } else {
+        _this4.renderAnnotation(msgContainer, ann);
+        return false;
+      }
+    });
+  },
+  formatTime: function formatTime(at) {
+    var date = new Date(null);
+    date.setSeconds(at / 1000);
+    return date.toISOString().substr(14, 5);
   }
 };
 exports.default = Video;
